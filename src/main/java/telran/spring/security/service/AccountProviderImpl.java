@@ -30,7 +30,7 @@ public class AccountProviderImpl implements AccountProvider {
 			log.info("End of restore from:" + fileName);
 		} catch (Exception e) {
 			log.error(e.getMessage());
-			throw new RuntimeException(e.toString());
+			// new RuntimeException(e.toString());
 		}
 
 		return accounts;

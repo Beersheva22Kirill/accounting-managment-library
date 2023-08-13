@@ -1,4 +1,4 @@
-package telran.spring.security.service;
+package telran.spring.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,14 +10,17 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
-@Configuration			
+import lombok.extern.slf4j.Slf4j;
+
+@Configuration	
+@Slf4j
 public class SecurityConfiguration {
 
 	@Bean
 	SecurityFilterChain configure(HttpSecurity httpSec) throws Exception {
 
 		return httpSec.csrf(custom -> custom.disable())
-				.cors(custom->custom.disable()).authorizeHttpRequests(custom -> 
+				.cors(custom->custom.disable()).authorizeHttpRequests(custom ->
 				custom.requestMatchers(HttpMethod.GET).authenticated()
 				.anyRequest().hasRole("ADMIN"))
 				.sessionManagement(custom -> custom.sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
@@ -25,8 +28,4 @@ public class SecurityConfiguration {
 		
 	}
 	
-	@Bean
-	PasswordEncoder getPasswordEncoder() {
-		return new BCryptPasswordEncoder();
-	}
 }

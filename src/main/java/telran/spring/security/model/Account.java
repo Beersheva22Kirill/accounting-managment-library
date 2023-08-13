@@ -2,6 +2,8 @@ package telran.spring.security.model;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.LinkedList;
+import java.util.List;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Min;
@@ -19,5 +21,6 @@ public class Account implements Serializable{
 	LocalDateTime expDate;
 	@Size(min = 1)
 	final String[] roles;
+	LinkedList<String> oldPass;
 	
 }
