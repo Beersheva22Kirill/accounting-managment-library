@@ -30,7 +30,7 @@ public class AccountProviderImpl implements AccountProvider {
 			log.info("End of restore from:" + fileName);
 		} catch (Exception e) {
 			log.error(e.getMessage());
-			// new RuntimeException(e.toString());
+			
 		}
 
 		return accounts;
@@ -42,7 +42,7 @@ public class AccountProviderImpl implements AccountProvider {
 		List<Account> accForSave = new ArrayList<Account>(accounts);
 		try(ObjectOutputStream ous = new ObjectOutputStream(new FileOutputStream(fileName))){
 			ous.writeObject(accForSave);
-			log.info("End of save in:" + fileName);
+			log.info("End of save in:" + fileName + ". Amount of accounts:" + accounts.size());
 		} catch (Exception e) {
 			log.error(e.getMessage());
 			throw new RuntimeException(e.toString());

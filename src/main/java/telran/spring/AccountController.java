@@ -21,19 +21,19 @@ import telran.spring.security.validation.PasswordValidator;
 @RequestMapping("accounts")
 @RequiredArgsConstructor
 @Slf4j
-public class AccountController implements AccountService{
+public class AccountController{
 
 	final AccountService accountService;
 	final PasswordValidator passwordValidator;
 	
-	@Override
+	
 	@GetMapping("{userName}")
 	public Account getAccount(@PathVariable String userName) {
 		
 		return accountService.getAccount(userName);
 	}
 
-	@Override
+	
 	@PostMapping
 	public void addAccount(@RequestBody @Valid Account account) {
 		log.debug("Controller recieved account: " + account.toString());
@@ -41,7 +41,7 @@ public class AccountController implements AccountService{
 		accountService.addAccount(account);
 	}
 
-	@Override
+	
 	@PutMapping("{userName}")
 	public void updatePassword(@PathVariable String userName, @RequestBody String newPassword) {
 		passwordValidator.validate(newPassword);
@@ -50,7 +50,7 @@ public class AccountController implements AccountService{
 	}
 	
 	
-	@Override
+	
 	@DeleteMapping("{userName}")
 	public void deleteAccount(@PathVariable String userName) {
 		

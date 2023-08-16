@@ -38,6 +38,8 @@ public class AccountServiceImpl implements AccountService {
 	int limitPasswords;
 	@Value("${app.security.validation.period:3600000}")
 	long validationPeriod;
+	@Value("${app.security.validation.time.unit:HOURS}")
+	ChronoUnit unit;
 	
 	final AccountProvider provider;
 	@Autowired
@@ -60,9 +62,9 @@ public class AccountServiceImpl implements AccountService {
 	public void addAccount(Account account) {
 		if(map.containsKey(account.getUserName())) {
 			log.error("User with username {} exists",account.getUserName());
-			throw new RuntimeException();
+			throw new IllegalStateException(String.format("user %s already exists", account.getUserName()));
 		}
-			LocalDateTime expPeriod = LocalDateTime.now().plus(Long.valueOf(expirationPeriodHours), ChronoUnit.HOURS);
+			LocalDateTime expPeriod = LocalDateTime.now().plus(Long.valueOf(expirationPeriodHours), unit);
 			String hashPass = passwordEncoder.encode(account.getPassword());
 			Account newAccount = new Account(account.getUserName(), hashPass, account.getRoles());
 			LinkedList<String> passwords = new LinkedList<String>();
@@ -76,7 +78,7 @@ public class AccountServiceImpl implements AccountService {
 		map.put(accountForAdd.getUserName(), accountForAdd);
 		detailsService.createUser(User.withUsername(accountForAdd.getUserName())
 				.password(accountForAdd.getPassword()).roles(accountForAdd.getRoles())
-				.accountExpired(LocalDateTime.now().compareTo(accountForAdd.getExpDate()) >= 0) .build());
+				.accountExpired(isExpired(accountForAdd)) .build());
 		log.debug("User with username {} added", accountForAdd.getUserName());
 	}
 
@@ -106,11 +108,11 @@ public class AccountServiceImpl implements AccountService {
 		passwords.add(hashPassword);	
 		Account newAcc = new Account(username, hashPassword, roles);
 		newAcc.setOldPass(passwords);
-		LocalDateTime expDate = LocalDateTime.now().plus(Long.valueOf(expirationPeriodHours), ChronoUnit.HOURS);
+		LocalDateTime expDate = LocalDateTime.now().plus(Long.valueOf(expirationPeriodHours), unit);
 		newAcc.setExpDate(expDate);
 		map.put(username, newAcc);
 		detailsService.updateUser(User.withUsername(username).password(hashPassword).roles(roles)
-				.accountExpired(LocalDateTime.now().compareTo(expDate) >= 0)
+				.accountExpired(isExpired(newAcc))
 				.build());
 		log.debug("Account with username {} updated", userName);
 
@@ -128,12 +130,14 @@ public class AccountServiceImpl implements AccountService {
 	
 	@PostConstruct
 	void restoreAccounts() {
-	
 		List<Account> accounts = provider.getAccounts();
 		for (Account account : accounts) {
 				createUser(account);	
-		}
-		
+		}	
+	}
+	
+	@PostConstruct
+	void startServiceExpiration() {
 		Thread thread = new Thread(() -> {
 			while(true) {
 					try {
@@ -146,8 +150,9 @@ public class AccountServiceImpl implements AccountService {
 			}
 		});
 		thread.setDaemon(true);
-		thread.start();
+		thread.start();		
 	}
+	
 	
 	@PreDestroy
 	void saveAccounts(){
@@ -170,7 +175,7 @@ public class AccountServiceImpl implements AccountService {
 
 	private boolean isExpired(Account account) {
 		
-		return LocalDateTime.now().isBefore(account.getExpDate());
+		return LocalDateTime.now().isAfter(account.getExpDate());
 	}
 
 }
